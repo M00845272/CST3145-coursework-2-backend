@@ -138,31 +138,42 @@ app.get('/lessons', (req, res) => {
 
 // Update a lesson's available spaces
 // API always reduces available spaces by 1
-app.put('/lesson/update_availability/:id', (req, res) => {
-    const lessonId = parseInt(req.params.id);
-    console.log('update_availability API called. LessonId=' + lessonId);
+app.put('/lesson/update_availability', (req, res) => {
+    const cart = req.body;
+    console.log('update_availability API called. Cart=' + JSON.stringify(cart));
+    let success = true;
+    let message = "Successfully updated available spaces."
+    for (const lessonId in cart) {
+        console.log('lessonId=' + lessonId);
+        // Find the lesson by ID
+        const index = lessons.findIndex((lesson) => lesson.id === parseInt(lessonId));
 
-    // Find the lesson by ID
-    const index = lessons.findIndex((lesson) => lesson.id === lessonId);
-    console.log('Available spaces before update: ', lessons[index]);
+        if (index == -1) {
+            success = false;
+            message = 'Lesson not found';
+            break;
+        }
+        console.log('Available spaces before update: ', lessons[index]);
 
-    let currentAvailableSPaces = lessons[index]['availableInventory'];
+        let currentAvailableSPaces = lessons[index]['availableInventory'];
+        // return error if not enough available spaces
+        if (currentAvailableSPaces < cart[lessonId]) {
+            success = false;
+            message = 'Can\'t update, not enough available spaces.';
+            break;
+        }
 
-    // return error if not enough available spaces
-    if (currentAvailableSPaces < 1) {
-        res.status(404).json({ message: 'Can\'t update, not enough available spaces.' });
-        return;
+        if (index !== -1) {
+            // Update the lesson available count
+            lessons[index]['availableInventory'] = currentAvailableSPaces - cart[lessonId];
+            console.log('Available spaces after successfull update', lessons[index]);
+        }
     }
-
-
-    if (index !== -1) {
-        // Update the lesson available count
-        lessons[index]['availableInventory'] = currentAvailableSPaces - 1;
-        console.log('Available spaces updated successfully for', lessons[index]);
-
-        res.json({ message: 'Available spaces after successfull update: ', lesson: lessons[index] });
+    console.log(message);
+    if (success) {
+        res.json({ message: message });
     } else {
-        res.status(404).json({ message: 'Lesson not found' });
+        res.status(404).json({ message: message });
     }
 });
 
