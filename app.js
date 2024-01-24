@@ -116,6 +116,12 @@ let lessons = [
     }
 ];
 
+// Middleware for logging requests
+app.use((req, res, next) => {
+    console.log(`${new Date().toLocaleString()} - ${req.method} ${req.url}`);
+    next();
+  });
+
 // Get list of lessons
 app.get('/lessons', (req, res) => {
     console.log("lessons API called...");
