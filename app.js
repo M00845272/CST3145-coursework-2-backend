@@ -2,9 +2,12 @@ var express = require("express"); // Requires the Express module
 const bodyParser = require('body-parser');
 const path = require('path');
 var http = require('http');
+const cors = require("cors");
+
 // Calls the express function to start a new Express application
 var app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 let lessons = [
     {
