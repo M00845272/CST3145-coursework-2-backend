@@ -12,7 +12,7 @@ let lessons = [
         "subject": "Math",
         "location": "London",
         "price": 3500,
-        "image": "assets/images/math_icon_256px.png",
+        "image": "math_icon_256px.png",
         "availableInventory": 5,
         "rating": 1
     },
@@ -21,7 +21,7 @@ let lessons = [
         "subject": "Math",
         "location": "Oxford",
         "price": 3500,
-        "image": "assets/images/math_icon_256px.png",
+        "image": "math_icon_256px.png",
         "availableInventory": 10,
         "rating": 3
     },
@@ -30,7 +30,7 @@ let lessons = [
         "subject": "Science",
         "location": "London",
         "price": 2500,
-        "image": "assets/images/science_icon_256px.png",
+        "image": "science_icon_256px.png",
         "availableInventory": 5,
         "rating": 3
     },
@@ -39,7 +39,7 @@ let lessons = [
         "subject": "Science",
         "location": "Oxford",
         "price": 2500,
-        "image": "assets/images/science_icon_256px.png",
+        "image": "science_icon_256px.png",
         "availableInventory": 10,
         "rating": 4
     },
@@ -48,7 +48,7 @@ let lessons = [
         "subject": "Music",
         "location": "London",
         "price": 3000,
-        "image": "assets/images/music_icon_256px.png",
+        "image": "music_icon_256px.png",
         "availableInventory": 5,
         "rating": 2
     },
@@ -57,7 +57,7 @@ let lessons = [
         "subject": "Music",
         "location": "Oxford",
         "price": 3000,
-        "image": "assets/images/music_icon_256px.png",
+        "image": "music_icon_256px.png",
         "availableInventory": 10,
         "rating": 5
     },
@@ -66,7 +66,7 @@ let lessons = [
         "subject": "English",
         "location": "London",
         "price": 2500,
-        "image": "assets/images/english_icon_256px.png",
+        "image": "english_icon_256px.png",
         "availableInventory": 5,
         "rating": 2
     },
@@ -75,7 +75,7 @@ let lessons = [
         "subject": "English",
         "location": "Oxford",
         "price": 2500,
-        "image": "assets/images/english_icon_256px.png",
+        "image": "english_icon_256px.png",
         "availableInventory": 10,
         "rating": 3
     },
@@ -84,7 +84,7 @@ let lessons = [
         "subject": "English",
         "location": "York",
         "price": 2500,
-        "image": "assets/images/english_icon_256px.png",
+        "image": "english_icon_256px.png",
         "availableInventory": 5,
         "rating": 3
     },
@@ -93,7 +93,7 @@ let lessons = [
         "subject": "Math",
         "location": "York",
         "price": 3500,
-        "image": "assets/images/math_icon_256px.png",
+        "image": "math_icon_256px.png",
         "availableInventory": 5,
         "rating": 4
     },
@@ -102,7 +102,7 @@ let lessons = [
         "subject": "Science",
         "location": "York",
         "price": 2500,
-        "image": "assets/images/science_icon_256px.png",
+        "image": "science_icon_256px.png",
         "availableInventory": 5,
         "rating": 5
     },
@@ -111,7 +111,7 @@ let lessons = [
         "subject": "Music",
         "location": "York",
         "price": 3000,
-        "image": "assets/images/music_icon_256px.png",
+        "image": "music_icon_256px.png",
         "availableInventory": 5,
         "rating": 5
     }
