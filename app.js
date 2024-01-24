@@ -188,5 +188,21 @@ app.post('/order', (req, res) => {
     res.json({ message: 'Order created successfully', order: orderDetails });
 });
 
+// Search for lessons by subject or location
+app.get('/search', (req, res) => {
+    const searchKeyword = req.query.searchKeyword;
+  
+    if (!searchKeyword) {
+      return res.json(lessons);
+    }
+  
+    const searchResults = lessons.filter((lesson) => {
+      return lesson.subject.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      lesson.location.toLowerCase().includes(searchKeyword.toLowerCase());
+    });
+  
+    res.json(searchResults);
+  });
+
 
 http.createServer(app).listen(3000); // start the server
