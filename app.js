@@ -1,5 +1,6 @@
 var express = require("express"); // Requires the Express module
 const bodyParser = require('body-parser');
+const path = require('path');
 var http = require('http');
 // Calls the express function to start a new Express application
 var app = express();
@@ -120,7 +121,11 @@ let lessons = [
 app.use((req, res, next) => {
     console.log(`${new Date().toLocaleString()} - ${req.method} ${req.url}`);
     next();
-  });
+});
+
+// Middleware for serving static files (lesson images)
+app.use('/lesson/images', express.static(path.join(__dirname, 'lesson_images')));
+
 
 // Get list of lessons
 app.get('/lessons', (req, res) => {
