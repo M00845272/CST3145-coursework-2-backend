@@ -191,18 +191,20 @@ app.post('/order', (req, res) => {
 // Search for lessons by subject or location
 app.get('/search', (req, res) => {
     const searchKeyword = req.query.searchKeyword;
-  
+
     if (!searchKeyword) {
-      return res.json(lessons);
+        return res.json(lessons);
     }
-  
+
     const searchResults = lessons.filter((lesson) => {
-      return lesson.subject.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      lesson.location.toLowerCase().includes(searchKeyword.toLowerCase());
+        return lesson.subject.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+            lesson.location.toLowerCase().includes(searchKeyword.toLowerCase());
     });
-  
+
     res.json(searchResults);
-  });
+});
 
-
-http.createServer(app).listen(3000); // start the server
+const port = process.env.PORT || 3000;
+app.listen(port, function () {
+    console.log("App started on port: " + port);
+});
