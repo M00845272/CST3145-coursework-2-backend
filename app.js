@@ -3,138 +3,44 @@ const bodyParser = require('body-parser');
 const path = require('path');
 var http = require('http');
 const cors = require("cors");
+let propertiesReader = require("properties-reader");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 
 // Calls the express function to start a new Express application
 var app = express();
-app.use(bodyParser.json());
+app.use(express.json())
 app.use(cors());
 
-let lessons = [
-    {
-        "id": 1001,
-        "subject": "Math",
-        "location": "London",
-        "price": 3500,
-        "image": "math_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 1
-    },
-    {
-        "id": 1002,
-        "subject": "Math",
-        "location": "Oxford",
-        "price": 3500,
-        "image": "math_icon_256px.png",
-        "availableInventory": 10,
-        "rating": 3
-    },
-    {
-        "id": 1003,
-        "subject": "Science",
-        "location": "London",
-        "price": 2500,
-        "image": "science_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 3
-    },
-    {
-        "id": 1004,
-        "subject": "Science",
-        "location": "Oxford",
-        "price": 2500,
-        "image": "science_icon_256px.png",
-        "availableInventory": 10,
-        "rating": 4
-    },
-    {
-        "id": 1005,
-        "subject": "Music",
-        "location": "London",
-        "price": 3000,
-        "image": "music_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 2
-    },
-    {
-        "id": 1006,
-        "subject": "Music",
-        "location": "Oxford",
-        "price": 3000,
-        "image": "music_icon_256px.png",
-        "availableInventory": 10,
-        "rating": 5
-    },
-    {
-        "id": 1007,
-        "subject": "English",
-        "location": "London",
-        "price": 2500,
-        "image": "english_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 2
-    },
-    {
-        "id": 1008,
-        "subject": "English",
-        "location": "Oxford",
-        "price": 2500,
-        "image": "english_icon_256px.png",
-        "availableInventory": 10,
-        "rating": 3
-    },
-    {
-        "id": 1009,
-        "subject": "English",
-        "location": "York",
-        "price": 2500,
-        "image": "english_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 3
-    },
-    {
-        "id": 1010,
-        "subject": "Math",
-        "location": "York",
-        "price": 3500,
-        "image": "math_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 4
-    },
-    {
-        "id": 1011,
-        "subject": "Science",
-        "location": "York",
-        "price": 2500,
-        "image": "science_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 5
-    },
-    {
-        "id": 1012,
-        "subject": "Music",
-        "location": "York",
-        "price": 3000,
-        "image": "music_icon_256px.png",
-        "availableInventory": 5,
-        "rating": 5
-    }
-];
 
-// Middleware for logging requests
-app.use((req, res, next) => {
-    console.log(`${new Date().toLocaleString()} - ${req.method} ${req.url}`);
-    next();
+let propertiesPath = path.resolve(__dirname, "conf/db.properties");
+let properties = propertiesReader(propertiesPath);
+let dbPprefix = properties.get("db.prefix");
+//URL-Encoding of User and PWD
+//for potential special characters
+let dbUsername = encodeURIComponent(properties.get("db.user"));
+let dbPwd = encodeURIComponent(properties.get("db.pwd"));
+let dbName = properties.get("db.dbName");
+let dbUrl = properties.get("db.dbUrl");
+let dbParams = properties.get("db.params");
+const uri = dbPprefix + dbUsername + ":" + dbPwd + dbUrl + dbParams;
+
+const client = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+let db = client.db(dbName);
+
+app.param('collectionName', function (req, res, next, collectionName) {
+    req.collection = db.collection(collectionName);
+    return next();
 });
-
-// Middleware for serving static files (lesson images)
-app.use('/lesson/images', express.static(path.join(__dirname, 'lesson_images')));
-
 
 // Get list of lessons
-app.get('/lessons', (req, res) => {
-    console.log("lessons API called...");
-    res.json(lessons);
+app.get('/:collectionName', async function (req, res, next) {
+    console.log('lessions API');
+
+    let results = await req.collection.find({}).toArray();
+    res.send(results);
 });
+
 
 // Update a lesson's available spaces
 // API always reduces available spaces by 1
@@ -203,6 +109,16 @@ app.get('/search', (req, res) => {
 
     res.json(searchResults);
 });
+
+// Middleware for logging requests
+app.use((req, res, next) => {
+    console.log(`${new Date().toLocaleString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Middleware for serving static files (lesson images)
+app.use('/lesson/images', express.static(path.join(__dirname, 'lesson_images')));
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, function () {

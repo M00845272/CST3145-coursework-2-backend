@@ -3,7 +3,9 @@
   "main": "app.js",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mongodb": "^6.3.0",
+    "properties-reader": "^2.3.0"
   },
   "scripts": {
     "start": "node app.js"
