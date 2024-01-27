@@ -162,14 +162,17 @@ app.put('/lesson/update_availability', (req, res) => {
     }
 });
 
-let orders = [];
 // Create an order
-app.post('/order', (req, res) => {
+app.post('/:collectionName', async (req, res) => {
     const orderDetails = req.body;
-    console.log('order API called. OrderDetails:' + JSON.stringify(orderDetails));
+    console.log('orders API called. OrderDetails:' + JSON.stringify(orderDetails));
 
-    // Add the order to the orders array
-    orders.push(orderDetails);
+    await req.collection.insertOne(req.body, function (err, results) {
+        if (err) {
+            return next(err);
+        }
+        res.send(results);
+    });
     res.json({ message: 'Order created successfully', order: orderDetails });
 });
 
