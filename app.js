@@ -67,55 +67,56 @@ app.get('/:collectionName/search/:searchKeyword/:max/:sortAspect/:sortAscDesc', 
     if (req.params.sortAscDesc === "desc") {
         sortDirection = -1;
     }
+    let sortAspect = req.params.sortAspect;
 
-    console.log('searchKeyword=' + searchKeyword + ',max=' + max, ',sortAspect=' + req.params.sortAspect + ',sortDirection=' + sortDirection);
+    console.log('searchKeyword=' + searchKeyword + ',max=' + max, ',sortAspect=' + sortAspect + ',sortDirection=' + sortDirection);
 
     if (!searchKeyword) {
         let results = await req.collection.find({}, {
-            limit: max, sort: [[req.params.sortAspect, sortDirection]]
+            limit: max, sort: [[sortAspect, sortDirection]]
         }).toArray();
         res.send(results);
     }
 
-     // define pipeline
-     const agg = [
-        {$search: {
-            index: 'location-autocomplete', 
-            compound: {
-                should: [
-                    {
-                        autocomplete: {
-                            query:searchKeyword,
-                            path: 'subject',
-                            "fuzzy": { 
-                                "maxEdits": 2, 
-                                "prefixLength": 3 
-                            } 
+    // define pipeline
+    const agg = [
+        {
+            $search: {
+                index: 'location-subject-autocomplete',
+                compound: {
+                    should: [
+                        {
+                            "wildcard": {
+                                "query": searchKeyword + '*',
+                                "path": "subject",
+                                "allowAnalyzedField": true,
+                            }
                         },
-                    },
-                    {
-                        autocomplete: {
-                            query:searchKeyword,
-                            path: 'location',
-                            "fuzzy": { 
-                                "maxEdits": 2, 
-                                "prefixLength": 3 
-                            } 
+                        {
+                            "wildcard": {
+                                "query": searchKeyword + '*',
+                                "path": "location",
+                                "allowAnalyzedField": true,
+                            }
                         },
-                    },
-                ],
-            },
-        }},
-        {$limit: max},
+                    ],
+                },
+                "sort": {
+                    sortAspect: sortDirection
+                }
+            }
+        },
+        { $limit: max },
+        {
+            $sort: {
+                sortAspect: sortDirection
+            }
+        }
     ];
 
     let db = client.db(dbName);
     const coll = db.collection("lessons");
-
-    
-    let results = await coll.aggregate(agg)
-    await results.forEach((doc) => console.log(doc));
-   // .toArray();
+    let results = await coll.aggregate(agg).toArray()
     res.send(results);
 });
 
