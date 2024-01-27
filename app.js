@@ -12,6 +12,14 @@ var app = express();
 app.use(express.json())
 app.use(cors());
 
+// Middleware for logging requests
+app.use((req, res, next) => {
+    console.log(`${new Date().toLocaleString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Middleware for serving static files (lesson images)
+app.use('/lesson/images', express.static(path.join(__dirname, 'lesson_images')));
 
 let propertiesPath = path.resolve(__dirname, "conf/db.properties");
 let properties = propertiesReader(propertiesPath);
@@ -42,11 +50,72 @@ app.get('/:collectionName/:max/:sortAspect/:sortAscDesc', async function (req, r
         sortDirection = -1;
     }
 
-    console.log('max='+max,',sortAspect='+req.params.sortAspect+',sortDirection='+sortDirection);
+    console.log('max=' + max, ',sortAspect=' + req.params.sortAspect + ',sortDirection=' + sortDirection);
 
     let results = await req.collection.find({}, {
         limit: max, sort: [[req.params.sortAspect, sortDirection]]
     }).toArray();
+    res.send(results);
+});
+
+// Search for lessons by subject or location
+app.get('/:collectionName/search/:searchKeyword/:max/:sortAspect/:sortAscDesc', async (req, res) => {
+    const searchKeyword = req.params.searchKeyword;
+
+    var max = parseInt(req.params.max, 10); // base 10
+    let sortDirection = 1;
+    if (req.params.sortAscDesc === "desc") {
+        sortDirection = -1;
+    }
+
+    console.log('searchKeyword=' + searchKeyword + ',max=' + max, ',sortAspect=' + req.params.sortAspect + ',sortDirection=' + sortDirection);
+
+    if (!searchKeyword) {
+        let results = await req.collection.find({}, {
+            limit: max, sort: [[req.params.sortAspect, sortDirection]]
+        }).toArray();
+        res.send(results);
+    }
+
+     // define pipeline
+     const agg = [
+        {$search: {
+            index: 'location-autocomplete', 
+            compound: {
+                should: [
+                    {
+                        autocomplete: {
+                            query:searchKeyword,
+                            path: 'subject',
+                            "fuzzy": { 
+                                "maxEdits": 2, 
+                                "prefixLength": 3 
+                            } 
+                        },
+                    },
+                    {
+                        autocomplete: {
+                            query:searchKeyword,
+                            path: 'location',
+                            "fuzzy": { 
+                                "maxEdits": 2, 
+                                "prefixLength": 3 
+                            } 
+                        },
+                    },
+                ],
+            },
+        }},
+        {$limit: max},
+    ];
+
+    let db = client.db(dbName);
+    const coll = db.collection("lessons");
+
+    
+    let results = await coll.aggregate(agg)
+    await results.forEach((doc) => console.log(doc));
+   // .toArray();
     res.send(results);
 });
 
@@ -102,32 +171,6 @@ app.post('/order', (req, res) => {
     orders.push(orderDetails);
     res.json({ message: 'Order created successfully', order: orderDetails });
 });
-
-// Search for lessons by subject or location
-app.get('/search', (req, res) => {
-    const searchKeyword = req.query.searchKeyword;
-
-    if (!searchKeyword) {
-        return res.json(lessons);
-    }
-
-    const searchResults = lessons.filter((lesson) => {
-        return lesson.subject.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-            lesson.location.toLowerCase().includes(searchKeyword.toLowerCase());
-    });
-
-    res.json(searchResults);
-});
-
-// Middleware for logging requests
-app.use((req, res, next) => {
-    console.log(`${new Date().toLocaleString()} - ${req.method} ${req.url}`);
-    next();
-});
-
-// Middleware for serving static files (lesson images)
-app.use('/lesson/images', express.static(path.join(__dirname, 'lesson_images')));
-
 
 const port = process.env.PORT || 3000;
 app.listen(port, function () {
