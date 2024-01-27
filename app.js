@@ -34,10 +34,19 @@ app.param('collectionName', function (req, res, next, collectionName) {
 });
 
 // Get list of lessons
-app.get('/:collectionName', async function (req, res, next) {
-    console.log('lessions API');
+app.get('/:collectionName/:max/:sortAspect/:sortAscDesc', async function (req, res, next) {
+    console.log('lessons API');
+    var max = parseInt(req.params.max, 10); // base 10
+    let sortDirection = 1;
+    if (req.params.sortAscDesc === "desc") {
+        sortDirection = -1;
+    }
 
-    let results = await req.collection.find({}).toArray();
+    console.log('max='+max,',sortAspect='+req.params.sortAspect+',sortDirection='+sortDirection);
+
+    let results = await req.collection.find({}, {
+        limit: max, sort: [[req.params.sortAspect, sortDirection]]
+    }).toArray();
     res.send(results);
 });
 
