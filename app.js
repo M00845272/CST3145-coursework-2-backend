@@ -46,15 +46,24 @@ app.get('/:collectionName/:max/:sortAspect/:sortAscDesc', async function (req, r
     console.log('lessons API');
     var max = parseInt(req.params.max, 10); // base 10
     let sortDirection = 1;
-    if (req.params.sortAscDesc === "desc") {
+    if (req.params.sortAscDesc === "des") {
         sortDirection = -1;
     }
+    let sortAspect = req.params.sortAspect;
+    if(sortAspect == 'availableinventory') sortAspect = 'availableInventory';
 
-    console.log('max=' + max, ',sortAspect=' + req.params.sortAspect + ',sortDirection=' + sortDirection);
+    console.log('max=' + max, ',sortAspect=' + sortAspect + ',sortDirection=' + sortDirection);
 
     let results = await req.collection.find({}, {
-        limit: max, sort: [[req.params.sortAspect, sortDirection]]
+        limit: max, sort: [[sortAspect, sortDirection]]
     }).toArray();
+
+    // Set headers to prevent caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+
     res.send(results);
 });
 
@@ -64,10 +73,11 @@ app.get('/:collectionName/search/:searchKeyword/:max/:sortAspect/:sortAscDesc', 
 
     var max = parseInt(req.params.max, 10); // base 10
     let sortDirection = 1;
-    if (req.params.sortAscDesc === "desc") {
+    if (req.params.sortAscDesc == "des") {
         sortDirection = -1;
     }
     let sortAspect = req.params.sortAspect;
+    if(sortAspect == 'availableinventory') sortAspect = 'availableInventory';
 
     console.log('searchKeyword=' + searchKeyword + ',max=' + max, ',sortAspect=' + sortAspect + ',sortDirection=' + sortDirection);
 
@@ -75,6 +85,11 @@ app.get('/:collectionName/search/:searchKeyword/:max/:sortAspect/:sortAscDesc', 
         let results = await req.collection.find({}, {
             limit: max, sort: [[sortAspect, sortDirection]]
         }).toArray();
+        // Set headers to prevent caching
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
         res.send(results);
     }
 
@@ -116,7 +131,12 @@ app.get('/:collectionName/search/:searchKeyword/:max/:sortAspect/:sortAscDesc', 
 
     let db = client.db(dbName);
     const coll = db.collection("lessons");
-    let results = await coll.aggregate(agg).toArray()
+    let results = await coll.aggregate(agg).toArray();
+    // Set headers to prevent caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     res.send(results);
 });
 
@@ -157,7 +177,7 @@ app.put('/lesson/update_availability', async (req, res) => {
                 { $set: lesson },
                 { safe: true, multi: false }
             );
-            if (result.matchedCount !== 1)  success = false;
+            if (result.matchedCount !== 1) success = false;
             console.log('Available spaces updated successfully.');
         }
     }
