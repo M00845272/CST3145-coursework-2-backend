@@ -123,24 +123,26 @@ app.get('/:collectionName/search/:searchKeyword/:max/:sortAspect/:sortAscDesc', 
 
 // Update a lesson's available spaces
 // API always reduces available spaces by 1
-app.put('/lesson/update_availability', (req, res) => {
+app.put('/lesson/update_availability', async (req, res) => {
     const cart = req.body;
     console.log('update_availability API called. Cart=' + JSON.stringify(cart));
     let success = true;
     let message = "Successfully updated available spaces."
+    let db = client.db(dbName);
+    const coll = db.collection("lessons");
+
     for (const lessonId in cart) {
         console.log('lessonId=' + lessonId);
         // Find the lesson by ID
-        const index = lessons.findIndex((lesson) => lesson.id === parseInt(lessonId));
-
-        if (index == -1) {
+        let lesson = await coll.findOne({ id: parseInt(lessonId) });
+        if (lesson == null) {
             success = false;
             message = 'Lesson not found';
             break;
         }
-        console.log('Available spaces before update: ', lessons[index]);
+        console.log('Available spaces before update: ', JSON.stringify(lesson));
 
-        let currentAvailableSPaces = lessons[index]['availableInventory'];
+        let currentAvailableSPaces = lesson['availableInventory'];
         // return error if not enough available spaces
         if (currentAvailableSPaces < cart[lessonId]) {
             success = false;
@@ -148,17 +150,22 @@ app.put('/lesson/update_availability', (req, res) => {
             break;
         }
 
-        if (index !== -1) {
+        if (lesson != null) {
             // Update the lesson available count
-            lessons[index]['availableInventory'] = currentAvailableSPaces - cart[lessonId];
-            console.log('Available spaces after successfull update', lessons[index]);
+            lesson['availableInventory'] = currentAvailableSPaces - cart[lessonId];
+            let result = await coll.updateOne({ id: parseInt(lessonId) },
+                { $set: lesson },
+                { safe: true, multi: false }
+            );
+            if (result.matchedCount !== 1)  success = false;
+            console.log('Available spaces updated successfully.');
         }
     }
     console.log(message);
     if (success) {
         res.json({ message: message });
     } else {
-        res.status(404).json({ message: message });
+        res.status(404).json({ message: 'error' });
     }
 });
 
